@@ -1,4 +1,10 @@
 # SwiftVectors
+[![License](https://img.shields.io/github/license/ihar-shalouski/swift-vector-and-matrix)](LICENSE)
+[![Tag](https://img.shields.io/github/v/tag/ihar-shalouski/swift-vector-and-matrix?sort=semver)](https://github.com/ihar-shalouski/swift-vector-and-matrix/tags)
+[![codecov](https://codecov.io/gh/ihar-shalouski/swift-vector-and-matrix/branch/main/graph/badge.svg)](https://codecov.io/gh/ihar-shalouski/swift-vector-and-matrix)
+[![Swift Versions](https://img.shields.io/endpoint?url=https://swiftpackageindex.com/api/packages/ihar-shalouski/swift-vector-and-matrix/badge?type=swift-versions)](https://swiftpackageindex.com/ihar-shalouski/swift-vector-and-matrix)
+[![Platforms](https://img.shields.io/endpoint?url=https://swiftpackageindex.com/api/packages/ihar-shalouski/swift-vector-and-matrix/badge?type=platforms)](https://swiftpackageindex.com/ihar-shalouski/swift-vector-and-matrix)
+
 
 A tiny, fast, generic library for working with **vectors** and **matrices** in Swift. Intended for learning and day‑to‑day **linear algebra** and 2D geometry tasks, with a clean, test‑covered API.
 
