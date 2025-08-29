@@ -1,20 +1,37 @@
 name: CI
+
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  linux:
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: swift-actions/setup-swift@v2
+      - uses: actions/checkout@v1
+      - run: swift test --enable-code-coverage
+      - name: swifty-code-coverage
+        uses: michaelhenry/swifty-code-coverage@v1.0.1
         with:
-          swift-version: '5.9'
-      - run: swift build -v
-      - run: swift test --enable-code-coverage
-  macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: swift build -v
-      - run: swift test --enable-code-coverage
+          build-path: .build
+          target: SwiftVectors.xctest
+          is-spm: true
+          output: "coverage/lcov.info"
+          output-artifact-name: "codecov-artifact"
+      - name: Upload to Codecov
+        run: |
+          bash <(curl https://codecov.io/bash) -f "coverage/*.info"
+        shell: bash
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
