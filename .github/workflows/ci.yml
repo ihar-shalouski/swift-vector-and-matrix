@@ -17,29 +17,39 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-
       - name: Build & test with coverage (SwiftPM)
         shell: bash
         run: |
           set -euo pipefail
+
           swift test --parallel --enable-code-coverage
 
-          # Найти путь к .profdata
-          if swift test --help | grep -q -- "--show-codecov-path"; then
-            PROFILE="$(swift test --show-codecov-path)"
-          else
-            PROFILE="$(find .build -path "*/codecov/*.profdata" -print -quit)"
-          fi
-          echo "profdata: $PROFILE"
+          PROFILE="$(find .build -type f -name '*.profdata' -print -quit || true)"
 
-          # Сбор бинарей/объектов
+          if [ -z "${PROFILE}" ]; then
+            echo "No .profdata found, trying to merge .profraw files..."
+            PROFRAWS=$(find .build -type f -name '*.profraw' | tr '\n' ' ')
+            if [ -z "$PROFRAWS" ]; then
+              echo "No .profraw files found either. Directory listing for debug:" >&2
+              find .build -maxdepth 4 -type f -print | sed 's/^/  /'
+              exit 1
+            fi
+            xcrun llvm-profdata merge -sparse $PROFRAWS -o coverage.profdata
+            PROFILE="coverage.profdata"
+          fi
+
+          echo "Using instr-profile: $PROFILE"
+
           BIN_DIR="$(swift build --show-bin-path)"
           OBJECTS=$(find "$BIN_DIR" .build -type f \( -name "*.xctest" -o -perm -111 -o -name "*.dylib" \) | tr '\n' ' ')
-          [ -n "$OBJECTS" ] || { echo "No binaries for llvm-cov"; exit 1; }
+          if [ -z "$OBJECTS" ]; then
+            echo "No binaries found to export coverage from." >&2
+            exit 1
+          fi
 
-          # Экспорт в LCOV
           xcrun llvm-cov export -format=lcov -instr-profile "$PROFILE" $OBJECTS > coverage.lcov
-          ls -l coverage.lcov
+          echo "Generated coverage.lcov:"
+          head -n 20 coverage.lcov || true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
