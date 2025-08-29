@@ -2,36 +2,50 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+  test-and-coverage-macos:
+    runs-on: macos-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v1
-      - run: swift test --enable-code-coverage
-      - name: swifty-code-coverage
-        uses: michaelhenry/swifty-code-coverage@v1.0.1
-        with:
-          build-path: .build
-          target: SwiftVectors.xctest
-          is-spm: true
-          output: "coverage/lcov.info"
-          output-artifact-name: "codecov-artifact"
-      - name: Upload to Codecov
-        run: |
-          bash <(curl https://codecov.io/bash) -f "coverage/*.info"
+      - uses: actions/checkout@v4
+
+      - name: Build & test with coverage (SwiftPM)
         shell: bash
+        run: |
+          set -euo pipefail
+          swift test --parallel --enable-code-coverage
+
+          # Найти путь к .profdata
+          if swift test --help | grep -q -- "--show-codecov-path"; then
+            PROFILE="$(swift test --show-codecov-path)"
+          else
+            PROFILE="$(find .build -path "*/codecov/*.profdata" -print -quit)"
+          fi
+          echo "profdata: $PROFILE"
+
+          # Сбор бинарей/объектов
+          BIN_DIR="$(swift build --show-bin-path)"
+          OBJECTS=$(find "$BIN_DIR" .build -type f \( -name "*.xctest" -o -perm -111 -o -name "*.dylib" \) | tr '\n' ' ')
+          [ -n "$OBJECTS" ] || { echo "No binaries for llvm-cov"; exit 1; }
+
+          # Экспорт в LCOV
+          xcrun llvm-cov export -format=lcov -instr-profile "$PROFILE" $OBJECTS > coverage.lcov
+          ls -l coverage.lcov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.lcov
+          flags: unittests
+          fail_ci_if_error: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
