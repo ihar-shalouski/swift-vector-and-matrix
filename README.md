@@ -1,4 +1,4 @@
-# SwiftVector
+# SwiftVectors
 
 A tiny, fast, generic library for working with **vectors** and **matrices** in Swift. Intended for learning and day‑to‑day **linear algebra** and 2D geometry tasks, with a clean, test‑covered API.
 
