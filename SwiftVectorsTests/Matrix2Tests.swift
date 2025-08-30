@@ -36,6 +36,14 @@ struct MAtrix2Tests {
         #expect(matrix.col(j) == expected)
     }
 
+    @Test("shape", arguments: [
+        (Matrix2<Int>([[1, 2, 3], [4, 5, 6]]), Vector2<Int>(x: 2, y: 3)),
+        (Matrix2<Int>([[1, 2], [4, 5], [4, 5], [4, 5]]), Vector2<Int>(x: 4, y: 2)),
+    ])
+    func cols(matrix: Matrix2<Int>, expected: Vector2<Int>) async throws {
+        #expect(matrix.shape == expected)
+    }
+
     @Test("submatrix(removingRow:col:)", arguments: [
         (Matrix2<Int>([
             [1, 2, 3],
@@ -145,7 +153,6 @@ struct MAtrix2Tests {
             [2, -2, 3, 1],
         ]), 30),
 
-
         (Matrix2<Int>([
             [2, 4, 5, 1],
             [5, 1, 3, 0],
@@ -153,32 +160,40 @@ struct MAtrix2Tests {
             [4, 3, 2, 4],
         ]), -36),
 
+        (Matrix2<Int>([
+            [4, 5, 6, 5, 11],
+            [1, 4, 2, 0, 13],
+            [1, 1, 0, 1, 5],
+            [3, 2, 3, 0, 7],
+            [4, 1, 2, 3, 8],
+        ]), 194),
+
     ])
     func determinant(matrix: Matrix2<Int>, determinant: Int) async throws {
         #expect(matrix.determinant == determinant)
     }
 
     @Test("add +", arguments: [
-            (Matrix2<Int>([[1, 2], [3, 4]]),
-             Matrix2<Int>([[5, 6], [7, 8]]),
-             Matrix2<Int>([[6, 8], [10, 12]])),
-            (Matrix2<Int>([[0, -2, 3]]),
-             Matrix2<Int>([[1, 2, -7]]),
-             Matrix2<Int>([[1, 0, -4]])),
-        ])
+        (Matrix2<Int>([[1, 2], [3, 4]]),
+         Matrix2<Int>([[5, 6], [7, 8]]),
+         Matrix2<Int>([[6, 8], [10, 12]])),
+        (Matrix2<Int>([[0, -2, 3]]),
+         Matrix2<Int>([[1, 2, -7]]),
+         Matrix2<Int>([[1, 0, -4]])),
+    ])
     func add(lhs: Matrix2<Int>, rhs: Matrix2<Int>, expected: Matrix2<Int>) async throws {
         #expect(lhs + rhs == expected)
     }
 
 
     @Test("add and assign +=", arguments: [
-            (Matrix2<Int>([[1, 2], [3, 4]]),
-             Matrix2<Int>([[5, 6], [7, 8]]),
-             Matrix2<Int>([[6, 8], [10, 12]])),
-            (Matrix2<Int>([[0, -2, 3]]),
-             Matrix2<Int>([[1, 2, -7]]),
-             Matrix2<Int>([[1, 0, -4]])),
-        ])
+        (Matrix2<Int>([[1, 2], [3, 4]]),
+         Matrix2<Int>([[5, 6], [7, 8]]),
+         Matrix2<Int>([[6, 8], [10, 12]])),
+        (Matrix2<Int>([[0, -2, 3]]),
+         Matrix2<Int>([[1, 2, -7]]),
+         Matrix2<Int>([[1, 0, -4]])),
+    ])
     func addAssign(lhs: Matrix2<Int>, rhs: Matrix2<Int>, expected: Matrix2<Int>) async throws {
         var a = lhs
         a += rhs
@@ -189,13 +204,13 @@ struct MAtrix2Tests {
     }
 
     @Test("scalar multiply *", arguments: [
-           (Matrix2<Int>([[1, 2], [3, 4]]), 3, Matrix2<Int>([[3, 6], [9, 12]])),
-           (Matrix2<Int>([[0, -2, 3]]), -2, Matrix2<Int>([[0, 4, -6]])),
-       ])
-   func scalarMultiply(lhs: Matrix2<Int>, k: Int, expected: Matrix2<Int>) async throws {
-       #expect(lhs * k == expected)
-       #expect(k * lhs == expected)
-   }
+        (Matrix2<Int>([[1, 2], [3, 4]]), 3, Matrix2<Int>([[3, 6], [9, 12]])),
+        (Matrix2<Int>([[0, -2, 3]]), -2, Matrix2<Int>([[0, 4, -6]])),
+    ])
+    func scalarMultiply(lhs: Matrix2<Int>, k: Int, expected: Matrix2<Int>) async throws {
+        #expect(lhs * k == expected)
+        #expect(k * lhs == expected)
+    }
 
     @Test("scalar multiply and assign *= ")
     func scalarMultiplyAssign() async throws {
@@ -226,8 +241,8 @@ struct MAtrix2Tests {
             [8, 2]
         ]), 2.0,
          Matrix2<Double>([
-             [2, 3],
-             [4, 1]
+            [2, 3],
+            [4, 1]
          ])),
     ])
     func divide(lhs: Matrix2<Double>, rhs: Double, expected: Matrix2<Double>) async throws {
@@ -240,8 +255,8 @@ struct MAtrix2Tests {
             [8, 2]
         ]), 2.0,
          Matrix2<Double>([
-             [2, 3],
-             [4, 1]
+            [2, 3],
+            [4, 1]
          ])),
     ])
     func divideAssign(lhs: Matrix2<Double>, rhs: Double, expected: Matrix2<Double>) async throws {
@@ -323,7 +338,7 @@ struct MAtrix2Tests {
         var mm = m
         mm.transpose()
         #expect(mm == t)
-   }
+    }
 
     @Test("determinant (Double) & A * I == A", arguments: [
         Matrix2<Double>([
@@ -345,4 +360,242 @@ struct MAtrix2Tests {
         let I = Matrix2<Double>.identity(m.cols)
         #expect(m * I == m)
     }
+
+
+    @Test("solveUsingGaussianElimination", arguments: [
+        (Matrix2<Double>([
+            [4, -2],
+            [12, 2],
+        ]), [-8, -12], [-1.25, 1.5]),
+
+        (Matrix2<Double>([
+            [3, 2, 1],
+            [1, 2, 1],
+            [4, 3, -2],
+        ]), [10, 8, 4], [1, 2, 3]),
+
+        (Matrix2<Double>([
+            [3, 2, -5],
+            [2, -1, 3],
+            [1, 2, -1],
+        ]), [-1, 13, 9], [3, 5, 4]),
+
+        (Matrix2<Double>([
+            [7, -2, 0, 1],
+            [0, 1, 0, 1],
+            [0, 3, -2, 0],
+            [2, 2, 0, 5],
+        ]), [2, 1, 6, 1], [1, 2, 0, -1]),
+
+        (Matrix2<Double>([
+            [-3, 4, 4],
+            [-4, 4, 5],
+            [-4, -4, -3],
+        ]), [-6, -2, 22], [-2, -5, 2]),
+    ])
+    func solveUsingGaussianElimination(matrix: Matrix2<Double>, vector: [Double], expected: [Double]?) async throws {
+        let b = Matrix2<Double>(rows: matrix.rows, cols: 1, elements: vector)
+        if let expected {
+            let e = Matrix2<Double>(rows: matrix.rows, cols: 1, elements: expected)
+            let r = try #require(matrix.solveUsingGaussianElimination(b))
+            #expect(r.isAround(e))
+        } else {
+            #expect(matrix.solveUsingGaussianElimination(b) == nil)
+        }
+    }
+
+    @Test("luDecomposition partialPivoting(false)", arguments: [
+        (Matrix2<Double>([
+            [2, 4, 3, 5],
+            [-4, -7, -5, -8],
+            [6, 8, 2, 9],
+            [4, 9, -2, 14],
+        ]), [0, 1, 2, 3],
+         Matrix2<Double>([
+            [1, 0, 0, 0],
+            [-2, 1, 0, 0],
+            [3, -4, 1, 0],
+            [2, 1, 3, 1],
+         ]),
+         Matrix2<Double>([
+            [2, 4, 3, 5],
+            [0, 1, 1, 2],
+            [0, 0, -3, 2],
+            [0, 0, 0, -4],
+         ])
+        )
+    ])
+    func luDecomposition(matrix: Matrix2<Double>, premutation: [Int], expectedL: Matrix2<Double>, expectedU: Matrix2<Double>) throws {
+        let result = try #require(matrix.luDecomposition(partialPivoting: false))
+        #expect(result.permutation == premutation)
+        #expect(result.L == expectedL)
+        #expect(result.U == expectedU)
+    }
+
+    @Test("luDecomposition partialPivoting(true)", arguments: [
+        (Matrix2<Double>([
+            [2, 4, 3, 5],
+            [-4, -7, -5, -8],
+            [6, 8, 2, 9],
+            [4, 9, -2, 14],
+        ]), [2, 3, 1, 0],
+         Matrix2<Double>([
+             [1, 0, 0, 0],
+             [2.0 / 3.0, 1, 0, 0],
+             [-2.0 / 3.0, -5.0 / 11.0, 1.0, 0],
+             [1.0 / 3.0, 4.0 / 11.0, -13.0 / 19.0, 1],
+         ]),
+         Matrix2<Double>([
+             [6, 8, 2, 9],
+             [0, 11.0 / 3.0, -10.0 / 3.0, 8],
+             [0, 0, -57.0 / 11.0, 18.0 / 11.0],
+             [0, 0, 0, 4.0 / 19.0],
+         ])
+        )
+    ])
+    func luDecompositionPP(matrix: Matrix2<Double>, premutation: [Int], expectedL: Matrix2<Double>, expectedU: Matrix2<Double>) throws {
+        let result = try #require(matrix.luDecomposition(partialPivoting: true))
+        #expect(result.permutation == premutation)
+        #expect(result.L.isAround(expectedL))
+        #expect(result.U.isAround(expectedU))
+    }
+
+    @Test("solveUsingLu solveUsingGaussianElimination", arguments: [
+        (Matrix2<Double>([
+            [2, 1],
+            [-4, -6],
+        ]), Matrix2<Double>([
+            [1],
+            [2],
+        ]), Matrix2<Double>([
+            [1],
+            [-1],
+        ])),
+
+        (Matrix2<Double>([
+            [2, 1, -4],
+            [2, 2, -2],
+            [6, 3, -11],
+        ]), Matrix2<Double>([
+            [4],
+            [0],
+            [11],
+        ]), Matrix2<Double>([
+            [1],
+            [-2],
+            [-1],
+        ])),
+
+        (Matrix2<Double>([
+            [1, 3, 2],
+            [2, 8, 5],
+            [1, 11, 4],
+        ]),
+        Matrix2<Double>([
+            [2],
+            [3],
+            [0],
+        ]),
+        Matrix2<Double>([
+            [4],
+            [0],
+            [-1],
+        ])),
+
+        (Matrix2<Double>([
+            [1, 2, 4],
+            [3, 8, 14],
+            [2, 6, 13],
+        ]),
+        Matrix2<Double>([
+            [3],
+            [13],
+            [4],
+        ]),
+        Matrix2<Double>([
+            [3],
+            [4],
+            [-2],
+        ])),
+
+        (Matrix2<Double>([
+            [25, 5, 1],
+            [64, 8, 1],
+            [144, 12, 1],
+        ]),
+        Matrix2<Double>([
+            [106.8],
+            [177.2],
+            [279.2],
+        ]),
+        Matrix2<Double>([
+            [0.290476190476],
+            [19.690476190476],
+            [1.085714285714],
+        ])),
+
+        (Matrix2<Double>([
+            [1, 1, 1],
+            [2, 2, 3],
+            [1, 2, 3],
+        ]),
+        Matrix2<Double>([
+            [1],
+            [3],
+            [2],
+        ]),
+        Matrix2<Double>([
+            [1],
+            [-1],
+            [1],
+        ])),
+
+        (Matrix2<Double>([
+            [3,  2, -1, 4],
+            [2,  5,  2, 1],
+            [1, -1,  3, 2],
+            [4,  0,  1, 2],
+        ]),
+        Matrix2<Double>([
+            [-1],
+            [1],
+            [8],
+            [6],
+        ]),
+        Matrix2<Double>([
+            [1],
+            [-1],
+            [2],
+            [0],
+        ])),
+
+        (Matrix2<Double>([
+            [2, 1, 0, 3, -1],
+            [1, 4, 1, 0,  2],
+            [0, 1, 3, 1,  0],
+            [2, 0, 1, 5,  2],
+            [1, 2, 0, 2,  4],
+        ]),
+        Matrix2<Double>([
+            [11],
+            [0],
+            [2],
+            [21],
+            [10],
+        ]),
+        Matrix2<Double>([
+            [2],
+            [-1],
+            [0],
+            [3],
+            [1],
+        ])),
+    ])
+    func solve(matrix: Matrix2<Double>, b: Matrix2<Double>, expected: Matrix2<Double>) throws {
+        let result = try #require(matrix.solveUsingLu(b))
+        #expect(result.isAround(expected))
+        let result2 = try #require(matrix.solveUsingGaussianElimination(b))
+        #expect(result2.isAround(expected))
+    }
 }
+
